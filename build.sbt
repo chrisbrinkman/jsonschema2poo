@@ -11,7 +11,7 @@ scalaVersion := "2.10.0"
 
 crossVersion := CrossVersion.full
 
-javacOptions ++= Seq("-target", "1.6", "-source", "1.6", "-Xlint:unchecked", "-Xlint:deprecation")
+javacOptions ++= Seq("-target", "1.6", "-source", "1.6", "-Xlint:unchecked", "-Xlint:deprecation", "-g")
 
 scalacOptions ++= Seq("-optimize", "-unchecked", "-deprecation", "-Xcheckinit", "-encoding", "utf8")
 

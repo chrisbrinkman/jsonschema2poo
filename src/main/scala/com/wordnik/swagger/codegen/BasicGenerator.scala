@@ -16,20 +16,27 @@
 
 package com.wordnik.swagger.codegen
 
-import com.wordnik.swagger.codegen._
 import com.wordnik.swagger.codegen.util._
 import com.wordnik.swagger.codegen.language.CodegenConfig
-import com.wordnik.swagger.codegen.spec.SwaggerSpecValidator
-import com.wordnik.swagger.model._
-import com.wordnik.swagger.model.SwaggerSerializers
-import com.wordnik.swagger.codegen.spec.ValidationMessage
 
 import java.io.{ File, FileWriter }
 
-import scala.io._
-import scala.collection.JavaConversions._
-import scala.collection.mutable.{ ListBuffer, HashMap, HashSet }
+import scala.collection.mutable.{ ListBuffer, HashMap }
 import scala.io.Source
+import org.json4s.jackson.JsonMethods._
+import org.json4s._
+import com.wordnik.swagger.model._
+import scala.Some
+import scala.Tuple3
+import scala.Tuple2
+import scala.Tuple3
+import com.wordnik.swagger.model.ResourceListing
+import scala.Some
+import com.wordnik.swagger.model.Operation
+import com.wordnik.swagger.model.Model
+import scala.Tuple2
+import com.wordnik.swagger.model.ApiKeyValue
+import com.wordnik.swagger.model.ApiListing
 
 abstract class BasicGenerator extends CodegenConfig with PathUtil {
   def packageName = "com.wordnik.client"
@@ -49,38 +56,54 @@ abstract class BasicGenerator extends CodegenConfig with PathUtil {
   }
 
   def generateClientWithoutExit(args: Array[String]) {
-    if (args.length == 0) {
-      throw new RuntimeException("Need url to resource listing as argument. You can also specify VM Argument -DfileMap=/path/to/folder/containing.resources.json/")
-    }
-    val host = args(0)
-    val apiKey = if(args.length > 1) Some(args(1)) else None
-    val authorization = authenticate(apiKey)
-    val doc = {
-      try {
-        ResourceExtractor.fetchListing(getResourcePath(host), authorization)
-      } catch {
-        case e: Exception => throw new Exception("unable to read from " + host, e)
-      }
-    }
+//    if (args.length == 0) {
+//      throw new RuntimeException("Need url to resource listing as argument. You can also specify VM Argument -DfileMap=/path/to/folder/containing.resources.json/")
+//    }
+//    val host = args(0)
+//    val apiKey = if(args.length > 1) Some(args(1)) else None
+//    val authorization = authenticate(apiKey)
+//    val doc = {
+//      try {
+//        ResourceExtractor.fetchListing(getResourcePath(host), authorization)
+//      } catch {
+//        case e: Exception => throw new Exception("unable to read from " + host, e)
+//      }
+//    }
 
+    //FIXME remove
+    val host = ""
+
+    //FIXME only required for JSON parser.extract method
+    implicit val formats = SwaggerSerializers.formats("1.1")
+
+    //FIXME fileMap needs to be a CLI option
+    val json = Source.fromFile(System.getProperty("fileMap")).mkString
+    val doc = parse(json).extract[ResourceListing]
+
+    val authorization = None
     val apis: List[ApiListing] = getApis(host, doc, authorization)
 
-    SwaggerSerializers.validationMessages.filter(_.level == ValidationMessage.ERROR).size match {
-      case i: Int if i > 0 => {
-        println("********* Failed to read swagger json!")
-        SwaggerSerializers.validationMessages.foreach(msg => {
-          println(msg)
-        })
-        Option(System.getProperty("skipErrors")) match {
-          case Some(str) => println("**** ignoring errors and continuing")
-          case None => sys.exit(0)
-        }
-      }
-      case 0 =>
-    }
-    implicit val basePath = getBasePath(host, doc.basePath)
-    
-    new SwaggerSpecValidator(doc, apis).validate()
+    //FIXME remove
+    implicit val basePath = doc.basePath
+
+
+
+    //    SwaggerSerializers.validationMessages.filter(_.level == ValidationMessage.ERROR).size match {
+//      case i: Int if i > 0 => {
+//        println("********* Failed to read swagger json!")
+//        SwaggerSerializers.validationMessages.foreach(msg => {
+//          println(msg)
+//        })
+//        Option(System.getProperty("skipErrors")) match {
+//          case Some(str) => println("**** ignoring errors and continuing")
+//          case None => sys.exit(0)
+//        }
+//      }
+//      case 0 =>
+//    }
+//    implicit val basePath = getBasePath(host, doc.basePath)
+
+//    new SwaggerSpecValidator(doc, apis).validate()
 
     val allModels = new HashMap[String, Model]
     val operations = extractApiOperations(apis, allModels)
@@ -100,22 +123,22 @@ abstract class BasicGenerator extends CodegenConfig with PathUtil {
       println("wrote model " + filename)
     })
 
-    val apiBundle = prepareApiBundle(operationMap.toMap)
-    val apiFiles = bundleToSource(apiBundle, apiTemplateFiles.toMap)
-
-    apiFiles.map(m => {
-      val filename = m._1
-
-      val file = new java.io.File(filename)
-      file.getParentFile().mkdirs
-
-      val fw = new FileWriter(filename, false)
-      fw.write(m._2 + "\n")
-      fw.close()
-      println("wrote api " + filename)
-    })
-
-    codegen.writeSupportingClasses(operationMap, allModels.toMap)
+//    val apiBundle = prepareApiBundle(operationMap.toMap)
+//    val apiFiles = bundleToSource(apiBundle, apiTemplateFiles.toMap)
+//
+//    apiFiles.map(m => {
+//      val filename = m._1
+//
+//      val file = new java.io.File(filename)
+//      file.getParentFile().mkdirs
+//
+//      val fw = new FileWriter(filename, false)
+//      fw.write(m._2 + "\n")
+//      fw.close()
+//      println("wrote api " + filename)
+//    })
+//
+//    codegen.writeSupportingClasses(operationMap, allModels.toMap)
   }
 
 
