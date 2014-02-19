@@ -64,12 +64,12 @@ class BasicJavaGeneratorTest extends FlatSpec with ShouldMatchers {
   	config.processResponseDeclaration("int") should be (Some("Integer"))
   }
 
-  /*
-   * returns the invoker package from the config
-   */
-  it should "get the invoker package" in {
-  	config.invokerPackage should be (Some("com.wordnik.client.common"))
-  }
+//  /*
+//   * returns the invoker package from the config
+//   */
+//  it should "get the invoker package" in {
+//  	config.invokerPackage should be (Some("com.wordnik.client.common"))
+//  }
 
   /*
    * returns the api package

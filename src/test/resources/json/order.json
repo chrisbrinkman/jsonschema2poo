@@ -1,0 +1,30 @@
+{
+    "id":"Order",
+    "properties":{
+      "id":{
+        "type":"long"
+      },
+      "petId":{
+        "type":"long"
+      },
+      "status":{
+        "allowableValues":{
+          "valueType":"LIST",
+          "values":[
+            "placed",
+            " approved",
+            " delivered"
+          ],
+          "valueType":"LIST"
+        },
+        "description":"Order Status",
+        "type":"string"
+      },
+      "quantity":{
+        "type":"int"
+      },
+      "shipDate":{
+        "type":"Date"
+      }
+    }
+}

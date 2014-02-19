@@ -1,0 +1,11 @@
+{
+    "id":"Tag",
+    "properties":{
+      "id":{
+        "type":"long"
+      },
+      "name":{
+        "type":"string"
+      }
+    }
+}

@@ -22,8 +22,8 @@ cd $APP_DIR
 
 
 # if you've executed sbt assembly previously it will use that instead.
-export JAVA_OPTS="${JAVA_OPTS} -XX:MaxPermSize=256M -Xmx1024M -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005 -DfileMap=src/test/resources/petstore-1.1/resources.json -DloggerPath=conf/log4j.properties"
-ags="$@ samples/client/petstore/scala/ScalaPetstoreCodegen.scala"
+export JAVA_OPTS="${JAVA_OPTS} -XX:MaxPermSize=256M -Xmx1024M -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005 -DloggerPath=conf/log4j.properties"
+ags="$@ samples/client/petstore/scala/ScalaPetstoreCodegen.scala src/test/resources/json"
 
 if [ -f $APP_DIR/target/scala-$SCALA_RUNNER_VERSION/swagger-codegen.jar ]; then
   scala -cp target/scala-$SCALA_RUNNER_VERSION/swagger-codegen.jar $ags

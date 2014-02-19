@@ -1,0 +1,11 @@
+{
+  "id":"Category",
+  "properties":{
+    "id":{
+      "type":"long"
+    },
+    "name":{
+      "type":"string"
+    }
+  }
+}
