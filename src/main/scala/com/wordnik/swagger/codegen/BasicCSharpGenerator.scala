@@ -65,10 +65,7 @@ class BasicCSharpGenerator extends BasicGenerator {
   // template used for models
   modelTemplateFiles += "model.mustache" -> ".cs"
 
-  // template used for models
-  apiTemplateFiles += "api.mustache" -> ".cs"
-
-  override def reservedWords = Set("abstract", "continue", "for", "new", "switch", "assert", 
+  override def reservedWords = Set("abstract", "continue", "for", "new", "switch", "assert",
       "default", "if", "package", "synchronized", "do", "goto", "private", "this", "break", 
       "implements", "protected", "throw", "else", "import", "public", "throws", "case", 
       "enum", "instanceof", "return", "transient", "catch", "extends", "try", "final", 
@@ -81,35 +78,8 @@ class BasicCSharpGenerator extends BasicGenerator {
   // package for models
   override def modelPackage = Some("Com.Wordnik.Client.Model")
 
-  // package for api classes
-  override def apiPackage = Some("Com.Wordnik.Client.Api")
-
   // file suffix
   override def fileSuffix = ".cs"
-
-  // response classes
-  override def processResponseClass(responseClass: String): Option[String] = {
-    responseClass match {
-      case "void" => None
-      case e: String => Some(typeMapping.getOrElse(e, e.replaceAll("\\[", "<").replaceAll("\\]", ">")))
-    }
-  }
-
-  override def processResponseDeclaration(responseClass: String): Option[String] = {
-    responseClass match {
-      case "void" => None
-      case e: String => {
-        val ComplexTypeMatcher = "(.*)\\[(.*)\\].*".r
-        val t = e match {
-          case ComplexTypeMatcher(container, inner) => {
-            e.replaceAll(container, typeMapping.getOrElse(container.toLowerCase, container))
-          }
-          case _ => e
-        }
-        Some(typeMapping.getOrElse(t, t.replaceAll("\\[", "<").replaceAll("\\]", ">")))
-      }
-    }
-  }
 
   override def toDeclaredType(dt: String): String = {
     val declaredType = dt.indexOf("[") match {
@@ -194,12 +164,4 @@ class BasicCSharpGenerator extends BasicGenerator {
   def capitalize(s: String) = { 
     s(0).toUpper + s.substring(1, s.length).toLowerCase 
   }*/
-
-  // supporting classes
-  override def supportingFiles =
-    List(
-      ("apiInvoker.mustache", destinationDir + java.io.File.separator + invokerPackage.get.replace(".", java.io.File.separator) + java.io.File.separator, "ApiInvoker.java"),
-      ("apiException.mustache", destinationDir + java.io.File.separator + invokerPackage.get.replace(".", java.io.File.separator) + java.io.File.separator, "ApiException.java"),
-      ("Newtonsoft.Json.dll", "generated-code/csharp/bin", "Newtonsoft.Json.dll"),
-      ("compile.mustache", "generated-code/csharp", "compile.bat"))
 }

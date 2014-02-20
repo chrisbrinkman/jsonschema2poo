@@ -30,16 +30,11 @@ class BasicRubyGenerator extends BasicGenerator {
     name(0).toUpper + name.substring(1) + "_api"
   }
 
-  override def apiPackage = Some("lib")
-
   // location of templates
   override def templateDir = "ruby"
 
   // template used for models
   modelTemplateFiles += "model.mustache" -> ".rb"
-
-  // template used for models
-  apiTemplateFiles += "api.mustache" -> ".rb"
 
   // where to write generated code
   override def destinationDir = "generated-code/ruby"
@@ -50,16 +45,7 @@ class BasicRubyGenerator extends BasicGenerator {
   // package for models
   override def modelPackage = Some("models")
 
-  // response classes
-  override def processResponseClass(responseClass: String): Option[String] = {
-    responseClass match {
-      case "void" => None
-      case e: String => Some(e)
-    }
-  }
-
   override def toModelFilename(name: String) = name.toLowerCase
-  override def toApiFilename(name: String) = name.toLowerCase + "_api"
 
   override def toVarName(name: String): String = toUnderscore(name)
 
@@ -105,13 +91,4 @@ class BasicRubyGenerator extends BasicGenerator {
     }
     (dataType, defaultValue)
   }
-
-  // supporting classes
-  override def supportingFiles = List(
-    ("monkey.mustache", destinationDir + File.separator + apiPackage.get, "monkey.rb"),
-    ("swagger.mustache", destinationDir + File.separator + apiPackage.get, "swagger.rb"),
-    ("swagger" + File.separator + "configuration.mustache", destinationDir + File.separator + apiPackage.get, "swagger" + File.separator + "configuration.rb"),
-    ("swagger" + File.separator + "response.mustache", destinationDir + File.separator + apiPackage.get, "swagger" + File.separator + "response.rb"),
-    ("swagger" + File.separator + "version.mustache", destinationDir + File.separator + apiPackage.get, "swagger" + File.separator + "version.rb"),
-    ("swagger" + File.separator + "request.mustache", destinationDir + File.separator + apiPackage.get, "swagger" + File.separator + "request.rb"))
 }

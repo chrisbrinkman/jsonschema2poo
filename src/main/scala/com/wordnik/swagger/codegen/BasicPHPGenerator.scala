@@ -28,9 +28,6 @@ class BasicPHPGenerator extends BasicGenerator {
   // template used for models
   modelTemplateFiles += "model.mustache" -> ".php"
 
-  // template used for models
-  apiTemplateFiles += "api.mustache" -> ".php"
-
   // location of templates
   override def templateDir = "php"
 
@@ -39,9 +36,6 @@ class BasicPHPGenerator extends BasicGenerator {
 
   // package for models
   override def modelPackage = Some("models")
-
-  // package for apis
-  override def apiPackage = Some("")
 
   // file suffix
   override def fileSuffix = ".php"
@@ -54,48 +48,6 @@ class BasicPHPGenerator extends BasicGenerator {
   // import/require statements for specific datatypes
   override def importMapping = Map()
 
-
- // response classes
-  override def processResponseClass(responseClass: String): Option[String] = {
-    typeMapping.contains(responseClass) match {
-      case true => Some(typeMapping(responseClass))
-      case false => {
-        responseClass match {
-          case "void" => None
-          case e: String => {
-            responseClass.startsWith("List") match {
-              case true => Some("array")
-              case false => Some(responseClass)
-            }
-          }
-        }
-      }
-    }
-  }
-
-
-  override def processResponseDeclaration(responseClass: String): Option[String] = {
-    typeMapping.contains(responseClass) match {
-      case true => Some(typeMapping(responseClass))
-      case false => {
-        responseClass match {
-          case "void" => None
-          case e: String => {
-            responseClass.startsWith("List") match {
-              case true => {
-                val responseSubClass = responseClass.dropRight(1).substring(5)
-                typeMapping.contains(responseSubClass) match {
-                  case true => Some("array[" + typeMapping(responseSubClass) + "]")
-                  case false => Some("array[" + responseSubClass + "]")
-                }
-              }
-              case false => Some(responseClass)
-            }
-          }
-        }
-      }
-    }
-  }
   override def typeMapping = Map(
     "string" -> "string",
     "str" -> "string",
@@ -154,10 +106,4 @@ class BasicPHPGenerator extends BasicGenerator {
 
   // escape keywords
   override def escapeReservedWord(word: String) = "`" + word + "`"
-
-  // supporting classes
-  override def supportingFiles = List(
-    ("Swagger.mustache", destinationDir + File.separator + apiPackage.get,
-     "Swagger.php")
-  )
 }

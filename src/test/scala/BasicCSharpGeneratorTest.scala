@@ -14,17 +14,13 @@
  *  limitations under the License.
  */
 
-import com.wordnik.swagger.model._
-import com.wordnik.swagger.codegen.{BasicCSharpGenerator, PathUtil}
-import com.wordnik.swagger.codegen.util._
-import com.wordnik.swagger.codegen.language._
+import com.wordnik.swagger.codegen.BasicCSharpGenerator
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 
-import scala.reflect.BeanProperty
 
 @RunWith(classOf[JUnitRunner])
 class BasicCSharpGeneratorTest extends FlatSpec with ShouldMatchers {
@@ -37,12 +33,5 @@ class BasicCSharpGeneratorTest extends FlatSpec with ShouldMatchers {
    */
   it should "perserve the name date" in {
     config.toVarName("date") should be ("date")
-  }
-
- /*
-   * arrays look nice
-   */
-  it should "process a string array" in {
-    config.processResponseDeclaration("array[string]") should be (Some("List<string>"))
   }
 }

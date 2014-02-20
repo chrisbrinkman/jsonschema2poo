@@ -14,7 +14,6 @@
  *  limitations under the License.
  */
 
-import com.wordnik.swagger.codegen.util._
 import com.wordnik.swagger.codegen.language._
 import com.wordnik.swagger.codegen.PathUtil
 
@@ -22,8 +21,6 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
-
-import scala.reflect.BeanProperty
 
 @RunWith(classOf[JUnitRunner])
 class CodegenConfigTest extends FlatSpec with ShouldMatchers {
@@ -38,8 +35,6 @@ class CodegenConfigTest extends FlatSpec with ShouldMatchers {
     }
     override def escapeReservedWord(word: String) = "`" + word + "`"
     override def typeMapping = Map("int" -> "integer")
-    override def invokerPackage = Some("com.wordnik.something")
-    override def apiPackage = Some("com.wordnik.api")
     override def modelPackage = Some("com.wordnik.models")
     override def reservedWords = Set("special")
     override def importMapping = super.importMapping ++ Map("User" -> "com.mypackage.User")
@@ -64,44 +59,6 @@ class CodegenConfigTest extends FlatSpec with ShouldMatchers {
   }
 
   behavior of "CodegenConfig"
-  /*
-   * A response of type "void" will turn into a declaration of None
-   * for the template generator
-   */
-  it should "process a response declaration" in {
-    config.processResponseDeclaration("void") should be (None)
-  }
-
-  /*
-   * if a response declaration is valid as-is, it will be
-   * unchanged
-   */
-  it should "process an unchanged response" in {
-    config.processResponseDeclaration("string") should be (Some("string"))
-  }
-
-  /*
-   * if a typeMapping is configured, the response type declaration
-   * from a method should be translated
-   */
-  it should "process an mapped response type" in {
-    config.processResponseDeclaration("int") should be (Some("integer"))
-  }
-
-  /*
-   * returns the invoker package from the config
-   */
-  it should "get the invoker package" in {
-    config.invokerPackage should be (Some("com.wordnik.something"))
-  }
-
-  /*
-   * returns the api package
-   */
-  it should "get the api package" in {
-    config.apiPackage should be (Some("com.wordnik.api"))
-  }
-
   /*
    * returns the model package
    */

@@ -15,69 +15,18 @@
  */
 
 import com.wordnik.swagger.model._
-import com.wordnik.swagger.codegen.{BasicJavaGenerator, PathUtil}
-import com.wordnik.swagger.codegen.util._
-import com.wordnik.swagger.codegen.language._
+import com.wordnik.swagger.codegen.BasicJavaGenerator
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 
-import scala.reflect.BeanProperty
-
 @RunWith(classOf[JUnitRunner])
 class BasicJavaGeneratorTest extends FlatSpec with ShouldMatchers {
   val config = new BasicJavaGenerator
 
   behavior of "BasicJavaGenerator"
-  /*
-   * A response of type "void" will turn into a declaration of None
-   * for the template generator
-   */
-  it should "process a response declaration" in {
-  	config.processResponseDeclaration("void") should be (None)
-  }
-
-  /*
-   * swagger strings are turned into scala Strings
-   */
-  it should "process a string response" in {
-  	config.processResponseDeclaration("string") should be (Some("String"))
-  }
-
- /*
-   * arrays look nice
-   */
-  it should "process a string array" in {
-    config.processResponseDeclaration("array[String]") should be (Some("List<String>"))
-  }
-
-  it should "process an upper-case string array" in {
-    config.processResponseDeclaration("Array[String]") should be (Some("List<String>"))
-  }
-
-  /*
-   * swagger int is turned into scala Int
-   */
-  it should "process an unmapped response type" in {
-  	config.processResponseDeclaration("int") should be (Some("Integer"))
-  }
-
-//  /*
-//   * returns the invoker package from the config
-//   */
-//  it should "get the invoker package" in {
-//  	config.invokerPackage should be (Some("com.wordnik.client.common"))
-//  }
-
-  /*
-   * returns the api package
-   */
-  it should "get the api package" in {
-  	config.apiPackage should be (Some("com.wordnik.client.api"))
-  }
-
   /*
    * returns the model package
    */

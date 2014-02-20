@@ -28,9 +28,6 @@ class BasicPythonGenerator extends BasicGenerator {
   // template used for models
   modelTemplateFiles += "model.mustache" -> ".py"
 
-  // template used for models
-  apiTemplateFiles += "api.mustache" -> ".py"
-
   // location of templates
   override def templateDir = "python"
 
@@ -39,9 +36,6 @@ class BasicPythonGenerator extends BasicGenerator {
 
   // package for models
   override def modelPackage = Some("models")
-
-  // package for apis
-  override def apiPackage = None
 
   // file suffix
   override def fileSuffix = ".py"
@@ -54,48 +48,6 @@ class BasicPythonGenerator extends BasicGenerator {
   // import/require statements for specific datatypes
   override def importMapping = Map()
 
-
- // response classes
-  override def processResponseClass(responseClass: String): Option[String] = {
-    typeMapping.contains(responseClass) match {
-      case true => Some(typeMapping(responseClass))
-      case false => {
-        responseClass match {
-          case "void" => None
-          case e: String => {
-            responseClass.startsWith("List") match {
-              case true => Some("list")
-              case false => Some(responseClass)
-            }
-          }
-        }
-      }
-    }
-  }
-
-
-  override def processResponseDeclaration(responseClass: String): Option[String] = {
-    typeMapping.contains(responseClass) match {
-      case true => Some(typeMapping(responseClass))
-      case false => {
-        responseClass match {
-          case "void" => None
-          case e: String => {
-            responseClass.startsWith("List") match {
-              case true => {
-                val responseSubClass = responseClass.dropRight(1).substring(5)
-                typeMapping.contains(responseSubClass) match {
-                  case true => Some("list[" + typeMapping(responseSubClass) + "]")
-                  case false => Some("list[" + responseSubClass + "]")
-                }
-              }
-              case false => Some(responseClass)
-            }
-          }
-        }
-      }
-    }
-  }
   override def typeMapping = Map(
     "float" -> "float",
     "long" -> "long",
@@ -154,12 +106,4 @@ class BasicPythonGenerator extends BasicGenerator {
 
   // escape keywords
   override def escapeReservedWord(word: String) = "`" + word + "`"
-
-  // supporting classes
-  override def supportingFiles = List(
-    ("__init__.mustache", destinationDir, "__init__.py"),
-    ("swagger.mustache", destinationDir + File.separator + apiPackage.getOrElse(""),
-     "swagger.py"),
-    ("__init__.mustache", destinationDir + File.separator +
-     modelPackage.getOrElse(""), "__init__.py"))
 }

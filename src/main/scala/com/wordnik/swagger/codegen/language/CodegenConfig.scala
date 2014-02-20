@@ -28,15 +28,10 @@ abstract class CodegenConfig {
   def templateDir: String
   def destinationDir: String
   def toModelName(name: String): String
-  def toApiName(name: String): String
 
   def toModelFilename(name: String) = name
-  def toApiFilename(name: String) = toApiName(name)
-  def apiNameFromPath(apiPath: String): String
-  def processApiMap(m: Map[String, AnyRef]): Map[String, AnyRef] = m
   def processModelMap(m: Map[String, AnyRef]): Map[String, AnyRef] = m
 
-  val apiTemplateFiles = new HashMap[String, String]()
   val modelTemplateFiles = new HashMap[String, String]()
   val additionalParams = new HashMap[String, String]
 
@@ -45,8 +40,6 @@ abstract class CodegenConfig {
   def typeMapping = Map[String, String]()
 
   // optional configs
-  def invokerPackage: Option[String] = None
-  def apiPackage: Option[String] = None
   def modelPackage: Option[String] = None
 
   def reservedWords: Set[String] = Set()
@@ -55,30 +48,11 @@ abstract class CodegenConfig {
   def importMapping: Map[String, String] = Map()
   def escapeReservedWord(word: String) = word
 
-  // only process these apis (by name)
-  val apisToProcess = new HashSet[String]
-
   // only process these models
   val modelsToProcess = new HashSet[String]
 
   // method name from operation.nickname
   def toMethodName(name: String): String = name
-
-  // override if you want to do something special on processing
-  // def processOperation(apiPath: String, op: DocumentationOperation) = {}
-  def processOperation(apiPath: String, op: Operation) = {}
-
-  def processResponseClass(responseClass: String): Option[String] = Some(responseClass)
-
-  def processApiOperation(apiPath: String, op: Operation) = {}
-  def processResponseDeclaration(responseClass: String): Option[String] = {
-    responseClass match {
-      case "void" => None
-      case e: String => Some(toDeclaredType(e))
-    }
-  }
-
-  def supportingFiles = List(): List[(String, String, String)]
 
   // mapping for datatypes
   def toDeclaration(property: ModelProperty) = {

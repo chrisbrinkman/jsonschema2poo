@@ -27,18 +27,4 @@ object ObjcPetstoreCodegen extends BasicObjcGenerator {
   override def templateDir = "objc"
 
   additionalParams ++= Map("projectName" -> "PetstoreClient")
-
-  // supporting classes
-  override def supportingFiles =
-    List(
-      ("SWGObject.h", destinationDir, "SWGObject.h"),
-      ("SWGObject.m", destinationDir, "SWGObject.m"),
-      ("SWGApiClient.h", destinationDir, "SWGApiClient.h"),
-      ("SWGApiClient.m", destinationDir, "SWGApiClient.m"),
-      ("SWGFile.h", destinationDir, "SWGFile.h"),
-      ("SWGFile.m", destinationDir, "SWGFile.m"),
-      ("SWGDate.h", destinationDir, "SWGDate.h"),
-      ("SWGDate.m", destinationDir, "SWGDate.m"),
-      ("Podfile.mustache", outputFolder, "Podfile")
-    )
 }

@@ -69,9 +69,6 @@ class BasicJavaGenerator extends BasicGenerator {
   // template used for models
   modelTemplateFiles += "model.mustache" -> ".java"
 
-  // template used for models
-  apiTemplateFiles += "api.mustache" -> ".java"
-
   override def reservedWords = Set("abstract", "continue", "for", "new", "switch", "assert", 
       "default", "if", "package", "synchronized", "boolean", "do", "goto", "private", 
       "this", "break", "double", "implements", "protected", "throw", "byte", "else", 
@@ -96,39 +93,12 @@ class BasicJavaGenerator extends BasicGenerator {
   // package for models
   override def modelPackage = Some("com.wordnik.client.model")
 
-  // package for api classes
-  override def apiPackage = Some("com.wordnik.client.api")
-
   // file suffix
   override def fileSuffix = ".java"
 
   override def toVarName(name: String): String = {
     val paramName = name.replaceAll("[^a-zA-Z0-9_]","")
     super.toVarName(paramName)
-  }
-
-  // response classes
-  override def processResponseClass(responseClass: String): Option[String] = {
-    responseClass match {
-      case "void" => None
-      case e: String => Some(typeMapping.getOrElse(e, e.replaceAll("\\[", "<").replaceAll("\\]", ">")))
-    }
-  }
-
-  override def processResponseDeclaration(responseClass: String): Option[String] = {
-    responseClass match {
-      case "void" => None
-      case e: String => {
-        val ComplexTypeMatcher = "(.*)\\[(.*)\\].*".r
-        val t = e match {
-          case ComplexTypeMatcher(container, inner) => {
-            e.replaceAll(container, typeMapping.getOrElse(container, container))
-          }
-          case _ => e
-        }
-        Some(typeMapping.getOrElse(t, t.replaceAll("\\[", "<").replaceAll("\\]", ">")))
-      }
-    }
   }
 
   override def toDeclaredType(dt: String): String = {
@@ -216,12 +186,4 @@ class BasicJavaGenerator extends BasicGenerator {
       throw new Exception("reserved word " + "\"" + word + "\" not allowed")
     else word
   }
-
-  // supporting classes
-  override def supportingFiles =
-    List(
-      ("apiInvoker.mustache", destinationDir + java.io.File.separator + invokerPackage.get.replace(".", java.io.File.separator) + java.io.File.separator, "ApiInvoker.java"),
-      ("JsonUtil.mustache", destinationDir + java.io.File.separator + invokerPackage.get.replace(".", java.io.File.separator) + java.io.File.separator, "JsonUtil.java"),
-      ("apiException.mustache", destinationDir + java.io.File.separator + invokerPackage.get.replace(".", java.io.File.separator) + java.io.File.separator, "ApiException.java"),
-      ("pom.mustache", "generated-code/java", "pom.xml"))
 }

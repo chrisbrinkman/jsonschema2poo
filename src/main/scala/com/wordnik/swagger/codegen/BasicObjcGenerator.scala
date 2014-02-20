@@ -98,63 +98,8 @@ class BasicObjcGenerator extends BasicGenerator {
   modelTemplateFiles += "model-header.mustache" -> ".h"
   modelTemplateFiles += "model-body.mustache" -> ".m"
 
-  // template used for apis
-  apiTemplateFiles += "api-header.mustache" -> ".h"
-  apiTemplateFiles += "api-body.mustache" -> ".m"
-
-  // package for models
-  override def invokerPackage: Option[String] = None
-
   // package for models
   override def modelPackage: Option[String] = None
-
-  // package for api classes
-  override def apiPackage: Option[String] = None
-
-  // response classes
-  override def processResponseClass(responseClass: String): Option[String] = {
-    typeMapping.contains(responseClass) match {
-      case true => Some(typeMapping(responseClass))
-      case false => {
-        responseClass match {
-          case "void" => None
-          case e: String => {
-            if(responseClass.toLowerCase.startsWith("array") || responseClass.toLowerCase.startsWith("list"))
-              Some("NSArray")
-            else
-              Some(toModelName(responseClass))
-          }
-        }
-      }
-    }
-  }
-
-  override def processApiMap(m: Map[String, AnyRef]): Map[String, AnyRef] = {
-    val mutable = scala.collection.mutable.Map() ++ m
-    mutable += "newline" -> "\n"
-
-    mutable.map(k => {
-      k._1 match {
-        case e: String if (e == "allParams") => {
-          val sp = (mutable(e)).asInstanceOf[List[_]]
-          sp.size match {
-            case i: Int if(i > 0) => mutable += "hasParams" -> "true"
-            case _ =>
-          }
-        }
-        case _ =>
-      }
-    })
-    mutable.toMap
-  }
-
-  override def processResponseDeclaration(responseClass: String): Option[String] = {
-    processResponseClass(responseClass) match {
-      case Some("void") => Some("void")
-      case Some(e) => Some(e + "*")
-      case _ => Some(responseClass)
-    }
-  }
 
   override def toDeclaredType(dt: String): String = {
     val declaredType = dt.indexOf("[") match {

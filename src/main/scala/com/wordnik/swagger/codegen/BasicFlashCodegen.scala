@@ -42,9 +42,6 @@ abstract class BasicFlashCodegen extends BasicGenerator {
   modelTemplateFiles += "model.mustache" -> ".as"
   modelTemplateFiles += "modelList.mustache" -> "List.as"
 
-  // template used for models
-  apiTemplateFiles += "api.mustache" -> ".as"
-
   // where to write generated code
   override def destinationDir = "src/test/flash"
 
@@ -55,41 +52,11 @@ abstract class BasicFlashCodegen extends BasicGenerator {
   // package for models
   override def modelPackage = Some("com.wordnik.client.model")
 
-  // package for api classes
-  override def apiPackage = Some("com.wordnik.client.api")
-
   // file suffix
   override def fileSuffix = ".as"
 
   override def toVarName(name: String): String = {
     name.substring(0, 1).toLowerCase + name.substring(1, name.length)
-  }
-
-  // response classes
-  override def processResponseClass(responseClass: String): Option[String] = {
-    responseClass match {
-      case "void" => None
-      case e: String => Some(e)
-    }
-  }
-
-  override def processResponseDeclaration(responseClass: String): Option[String] = {
-    responseClass match {
-      case "void" => None
-      case e: String => {
-        responseClass.startsWith("List") match {
-          case true => {
-            val responseSubClass = responseClass.dropRight(1).substring(5)
-            typeMapping.contains(responseSubClass) match {
-              case true => Some("Array")
-              case false => Some(packageName + ".model." +
-                responseSubClass + "List")
-            }
-          }
-          case false => Some(responseClass)
-        }
-      }
-    }
   }
 
   override def toDeclaredType(dt: String): String = {

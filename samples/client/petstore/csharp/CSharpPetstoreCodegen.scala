@@ -25,21 +25,8 @@ object CSharpPetstoreCodegen extends BasicCSharpGenerator {
   // where to write generated code
   override def destinationDir = "samples/client/petstore/csharp/src"
 
-  // package for api invoker, error files
-  override def invokerPackage = Some("Com.Wordnik.Petstore")
-
   // package for models
   override def modelPackage = Some("Com.Wordnik.Petstore.Model")
 
-  // package for api classes
-  override def apiPackage = Some("Com.Wordnik.Petstore.Api")
-
-  // supporting classes
-  override def supportingFiles =
-    List(
-      ("apiInvoker.mustache", destinationDir + java.io.File.separator + invokerPackage.get.replace(".", java.io.File.separator) + java.io.File.separator, "ApiInvoker.cs"),
-      ("apiException.mustache", destinationDir + java.io.File.separator + invokerPackage.get.replace(".", java.io.File.separator) + java.io.File.separator, "ApiException.cs"),
-      ("Newtonsoft.Json.dll", "samples/client/petstore/csharp/bin", "Newtonsoft.Json.dll"),
-      ("compile.mustache", "samples/client/petstore/csharp", "compile.bat"))
 }
 

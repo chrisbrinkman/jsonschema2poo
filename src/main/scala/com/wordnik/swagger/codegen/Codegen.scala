@@ -17,32 +17,26 @@
 package com.wordnik.swagger.codegen
 
 import com.wordnik.swagger.model._
-import com.wordnik.swagger.codegen.util.CoreUtils
 import com.wordnik.swagger.codegen.language.CodegenConfig
-import com.wordnik.swagger.codegen.spec.SwaggerSpec._
 
-import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization.write
 
 import org.fusesource.scalate._
-import org.fusesource.scalate.layout.DefaultLayoutStrategy
-import org.fusesource.scalate.mustache._
-import org.fusesource.scalate.support.ScalaCompiler
 
-import java.io.{ File, FileWriter, InputStream }
+import java.io.{ File, InputStream }
 
-import org.apache.commons.io.FileUtils
-
-import scala.io.Source
-import scala.collection.mutable.{ HashMap, ListBuffer, HashSet }
-import scala.collection.JavaConversions._
+import io.Source
+import collection.mutable.{ HashMap, ListBuffer, HashSet }
+import collection.JavaConversions._
 
 object Codegen {
   val templates = new HashMap[String, (String, (TemplateEngine, Template))]
 }
 
 class Codegen(config: CodegenConfig) {
-  implicit val formats = SwaggerSerializers.formats("1.2")
+  implicit val formats = SwaggerSerializers.formats
+  val primitives = List("int", "string", "long", "double", "float", "boolean", "void")
+  val containers = List("List", "Map", "Set", "Array")
 
   def generateSource(bundle: Map[String, AnyRef], templateFile: String): String = {
     val allImports = new HashSet[String]
@@ -66,32 +60,8 @@ class Codegen(config: CodegenConfig) {
     }
 
     val modelData = Map[String, AnyRef]("model" -> modelList.toList)
-    val operationList = new ListBuffer[Map[String, AnyRef]]
-    val classNameToOperationList = new HashMap[String, ListBuffer[AnyRef]]
-    val apis = bundle("apis")
-    apis match {
-      case a: Map[String, List[(String, Operation)]] => {
-        a.map(op => {
-          val classname = op._1
-          val ops = op._2
-          for ((apiPath, operation) <- ops) {
-            val opList = classNameToOperationList.getOrElse(classname, {
-              val lb = new ListBuffer[AnyRef]
-              classNameToOperationList += classname -> lb
-              lb
-            })
-            opList += apiToMap(apiPath, operation)
-          
-            CoreUtils.extractModelNames(operation).foreach(i => allImports += i)
-          }
-        })
-      }
-     
-      case None =>
-    }
 
     val f = new ListBuffer[AnyRef]
-    classNameToOperationList.map(m => f += Map("classname" -> m._1, "operation" -> m._2))
 
     val imports = new ListBuffer[Map[String, String]]
     val importScope = config.modelPackage match {
@@ -150,18 +120,16 @@ class Codegen(config: CodegenConfig) {
       case _ =>
     }
 
-    var data = Map[String, AnyRef](
+    val data = Map[String, AnyRef](
       "name" -> bundle("name"),
       "package" -> bundle("package"),
       "baseName" -> bundle.getOrElse("baseName", None),
       "className" -> bundle("className"),
-      "invokerPackage" -> bundle("invokerPackage"),
       "imports" -> imports,
       "requiredModels" -> requiredModels,
-      "operations" -> f,
       "models" -> modelData,
       "basePath" -> bundle.getOrElse("basePath", ""))
-    var output = engine.layout(resourcePath, template, data.toMap)
+    val output = engine.layout(resourcePath, template, data.toMap)
 
     //  a shutdown method will be added to scalate in an upcoming release
     engine.compiler.shutdown
@@ -213,219 +181,6 @@ class Codegen(config: CodegenConfig) {
     }
   }
 
-  def apiToMap(path: String, operation: Operation): Map[String, AnyRef] = {
-    var bodyParam: Option[String] = None
-    var queryParams = new ListBuffer[AnyRef]
-    val pathParams = new ListBuffer[AnyRef]
-    val headerParams = new ListBuffer[AnyRef]
-    val bodyParams = new ListBuffer[AnyRef]
-    val formParams = new ListBuffer[AnyRef]
-    var paramList = new ListBuffer[HashMap[String, AnyRef]]
-    var errorList = new ListBuffer[HashMap[String, AnyRef]]
-    var bodyParamRequired: Option[String] = Some("true")
-    
-    if (operation.responseMessages != null) {
-  		operation.responseMessages.foreach(param => { 
-        val params = new HashMap[String, AnyRef]
-        params += "code" -> param.code.toString()
-        params += "reason" -> param.message
-        params += "hasMore" -> "true"
-        errorList += params	 
-      })
-    }
-
-    if (operation.parameters != null) {
-      operation.parameters.foreach(param => {
-        val params = new HashMap[String, AnyRef]
-        params += (param.paramType + "Parameter") -> "true"
-        params += "type" -> param.paramType
-        params += "defaultValue" -> config.toDefaultValue(param.dataType, param.defaultValue.getOrElse(""))
-        params += "swaggerDataType" -> param.dataType
-        params += "description" -> param.description
-        params += "hasMore" -> "true"
-        params += "allowMultiple" -> param.allowMultiple.toString
-
-        val u = param.dataType.indexOf("[") match {
-          case -1 => config.toDeclaredType(param.dataType)
-          case n: Int => {
-            val ComplexTypeMatcher = "(.*)\\[(.*)\\].*".r
-            val ComplexTypeMatcher(container, basePart) = param.dataType
-            config.toDeclaredType(container + "[" + config.toDeclaredType(basePart) + "]")
-          }
-        }
-
-        params += "dataType" -> u
-        params += "getter" -> config.toGetter(param.name, u)
-        params += "setter" -> config.toSetter(param.name, u)
-
-        param.allowableValues match {
-          case a: AllowableValues => params += "allowableValues" -> allowableValuesToString(a)
-          case _ =>
-        }
-
-        if (!param.required) {
-          params += "optional" -> "true"
-        }
-        param.paramType match {
-          case "body" => {
-            params += "paramName" -> "body"
-            params += "baseName" -> "body"
-            param.required match {
-              case true => params += "required" -> "true"
-              case _ => bodyParamRequired = None
-            }
-
-            bodyParam = Some("body")
-            bodyParams += params.clone
-          }
-          case "path" => {
-            params += "paramName" -> config.toVarName(param.name)
-            params += "baseName" -> param.name
-            params += "required" -> "true"
-            pathParams += params.clone
-          }
-          case "query" => {
-            params += "paramName" -> config.toVarName(param.name)
-            params += "baseName" -> param.name
-            params += "required" -> param.required.toString
-            queryParams += params.clone
-          }
-          case "header" => {
-            params += "paramName" -> config.toVarName(param.name)
-            params += "baseName" -> param.name
-            params += "required" -> param.required.toString
-            headerParams += params.clone
-          }
-          case "form" => {
-            params += "paramName" -> config.toVarName(param.name)
-            params += "baseName" -> param.name
-            params += "required" -> param.required.toString
-            formParams += params.clone
-          }
-          case x @ _ => throw new Exception("Unknown parameter type: " + x)
-        }
-        paramList += params
-      })
-    }
-
-    val requiredParams = new ListBuffer[HashMap[String, AnyRef]]
-    paramList.filter(p => p.contains("required") && p("required") == "true").foreach(param => {
-      requiredParams += (param.clone += "hasMore" -> "true")
-    })
-    requiredParams.size match {
-      case 0 =>
-      case _ => requiredParams.last.asInstanceOf[HashMap[String, String]] -= "hasMore"
-    }
-
-    headerParams.size match {
-      case 0 =>
-      case _ => headerParams.last.asInstanceOf[HashMap[String, String]] -= "hasMore"
-    }
-
-    queryParams.size match {
-      case 0 =>
-      case _ => queryParams.last.asInstanceOf[HashMap[String, String]] -= "hasMore"
-    }
-
-    pathParams.size match {
-      case 0 =>
-      case _ => pathParams.last.asInstanceOf[HashMap[String, String]] -= "hasMore"
-    }
-    errorList.size match{
-      case 0 =>
-      case _ => errorList.last.asInstanceOf[HashMap[String, String]] -= "hasMore"
-      }
-
-    val sp = {
-      val lb = new ListBuffer[AnyRef]
-      paramList.foreach(i => {
-        i += "secondaryParam" -> "true"
-        i("defaultValue") match {
-          case Some(e) =>
-          case None => lb += i
-        }
-      })
-      paramList.foreach(i => {
-        i("defaultValue") match {
-          case Some(e) => lb += i
-          case None =>
-        }
-      })
-      lb.toList
-    }
-
-    paramList.size match {
-      case 0 =>
-      case _ => {
-        sp.head.asInstanceOf[HashMap[String, String]] -= "secondaryParam"
-        sp.last.asInstanceOf[HashMap[String, String]] -= "hasMore"
-      }
-    }
-
-    val writeMethods = Set("POST", "PUT", "PATCH")
-    val properties =
-      HashMap[String, AnyRef](
-        "path" -> path,
-        "nickname" -> config.toMethodName(operation.nickname),
-        "summary" -> operation.summary,
-        "notes" -> operation.notes,
-        "deprecated" -> operation.`deprecated`,
-        "bodyParam" -> bodyParam,
-        "bodyParamRequired" -> bodyParamRequired,
-        "emptyBodyParam" -> (if (writeMethods contains operation.method.toUpperCase) "{}" else ""),
-        "allParams" -> sp,
-        "bodyParams" -> bodyParams.toList,
-        "pathParams" -> pathParams.toList,
-        "queryParams" -> queryParams.toList,
-        "headerParams" -> headerParams.toList,
-        "formParams" -> formParams.toList,
-        "requiredParams" -> requiredParams.toList,
-        "errorList" -> errorList,
-        "httpMethod" -> operation.method.toUpperCase,
-        "httpMethodLowerCase" -> operation.method.toLowerCase,
-        operation.method.toLowerCase -> "true")
-    if (0 < operation.consumes.length) {
-      properties += "consume" -> operation.consumes(0)
-    } else {
-      properties += "consume" -> "application/json"
-    }
-    if (0 < operation.produces.length) {
-      properties += "produces" -> operation.produces
-    } else {
-      properties += "produces" -> "application/json"
-    }
-    if (requiredParams.size > 0) properties += "requiredParamCount" -> requiredParams.size.toString
-    operation.responseClass.indexOf("[") match {
-      case -1 => {
-        val baseType = operation.responseClass
-        properties += "returnType" -> config.processResponseDeclaration(baseType)
-        properties += "returnBaseType" -> config.processResponseClass(baseType)
-        properties += "returnSimpleType" -> "true"
-        properties += "returnTypeIsPrimitive" -> {
-          (config.languageSpecificPrimitives.contains(baseType) || primitives.contains(baseType)) match {
-            case true => Some("true")
-            case _ => None
-          }
-        }
-      }
-      case n: Int => {
-        val ComplexTypeMatcher = ".*\\[(.*)\\].*".r
-        val ComplexTypeMatcher(basePart) = operation.responseClass
-
-        properties += "returnType" -> config.processResponseDeclaration(operation.responseClass.replaceAll(basePart, config.processResponseClass(basePart).get))
-        properties += "returnContainer" -> (operation.responseClass.substring(0, n))
-        properties += "returnBaseType" -> config.processResponseClass(basePart)
-        properties += "returnTypeIsPrimitive" -> {
-          (config.languageSpecificPrimitives.contains(basePart) || primitives.contains(basePart)) match {
-            case true => Some("true")
-            case _ => None
-          }
-        }
-      }
-    }
-    config.processApiMap(properties.toMap)
-  }
-
   def modelToMap(className: String, model: Model): Map[String, AnyRef] = {
     val data: HashMap[String, AnyRef] =
       HashMap(
@@ -466,8 +221,8 @@ class Codegen(config: CodegenConfig) {
         }
       }
 
-      val isList = (if (isListType(propertyDocSchema.`type`)) true else None)
-      val isMap = (if (isMapType(propertyDocSchema.`type`)) true else None)
+      val isList = if (isListType(propertyDocSchema.`type`)) true else None
+      val isMap = if (isMapType(propertyDocSchema.`type`)) true else None
       val isNotContainer = if (!isListType(propertyDocSchema.`type`) && !isMapType(propertyDocSchema.`type`)) true else None
       val isContainer = if (isListType(propertyDocSchema.`type`) || isMapType(propertyDocSchema.`type`)) true else None
 
@@ -529,96 +284,8 @@ class Codegen(config: CodegenConfig) {
 
   def writeJson(m: AnyRef): String = {
     Option(System.getProperty("modelFormat")) match {
-      case Some(e) if e =="1.1" => write1_1(m)
       case _ => write(m)
     }
-  }
-
-  def write1_1(m: AnyRef): String = {
-    implicit val formats = SwaggerSerializers.formats("1.1")
-    write(m)
-  }
-
-  def writeSupportingClasses(apis: Map[(String, String), List[(String, Operation)]], models: Map[String, Model]) = {
-    val rootDir = new java.io.File(".")
-    val engine = new TemplateEngine(Some(rootDir))
-
-    val apiList = new ListBuffer[Map[String, AnyRef]]
-    apis.foreach(a => {
-      apiList += Map(
-        "name" -> a._1._2,
-        "filename" -> config.toApiFilename(a._1._2),
-        "className" -> config.toApiName(a._1._2),
-        "basePath" -> a._1._1,
-        "operations" -> {
-          (for (t <- a._2) yield { Map("operation" -> t._2, "path" -> t._1) }).toList
-        })
-    })
-
-    val modelList = new ListBuffer[HashMap[String, AnyRef]]
-
-    models.foreach(m => {
-      val json = writeJson(m._2)
-      modelList += HashMap(
-        "modelName" -> m._1,
-        "model" -> modelToMap(m._1, m._2),
-        "filename" -> config.toModelFilename(m._1),
-        "modelJson" -> json,
-        "hasMoreModels" -> "true")
-    })
-    modelList.size match {
-      case 0 =>
-      case _ => modelList.last.asInstanceOf[HashMap[String, String]] -= "hasMoreModels"
-    }
-
-    val data: HashMap[String, AnyRef] =
-      HashMap(
-        "invokerPackage" -> config.invokerPackage,
-        "package" -> config.packageName,
-        "modelPackage" -> config.modelPackage,
-        "apiPackage" -> config.apiPackage,
-        "apis" -> apiList,
-        "models" -> modelList) ++ config.additionalParams
-
-    config.supportingFiles.map(file => {
-      val supportingFile = file._1
-      val outputDir = file._2
-      val destFile = file._3
-
-      val outputFilename = outputDir + File.separator + destFile
-      val outputFolder = new File(outputFilename).getParent
-      new File(outputFolder).mkdirs
-
-      if (supportingFile.endsWith(".mustache")) {
-        val output = {
-          val (resourceName, (_, template)) = compileTemplate(supportingFile, Some(rootDir), Some(engine))
-          engine.layout(resourceName, template, data.toMap)
-        }
-        val fw = new FileWriter(outputFilename, false)
-        fw.write(output + "\n")
-        fw.close()
-        println("wrote " + outputFilename)
-      } else {
-        val file = new File(config.templateDir + File.separator + supportingFile)
-        if(file.isDirectory()) {
-          // copy the whole directory
-          FileUtils.copyDirectory(file, new File(outputDir))
-          println("copied directory " + supportingFile)
-        } else {
-          val is = getInputStream(config.templateDir + File.separator + supportingFile)
-          val outputFile = new File(outputFilename)
-          val parentDir = new File(outputFile.getParent)
-          if (parentDir != null && !parentDir.exists) {
-            println("making directory: " + parentDir.toString + ": " + parentDir.mkdirs)
-          }
-          FileUtils.copyInputStreamToFile(is, new File(outputFilename))
-          println("copied " + outputFilename)
-          is.close
-        }
-      }
-    })
-    //a shutdown method will be added to scalate in an upcoming release
-    engine.compiler.shutdown()
   }
 
   protected def isListType(dt: String) = isCollectionType(dt, "List") || isCollectionType(dt, "Array") || isCollectionType(dt, "Set")

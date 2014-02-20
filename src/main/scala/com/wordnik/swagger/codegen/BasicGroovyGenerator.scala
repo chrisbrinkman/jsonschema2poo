@@ -33,23 +33,9 @@ class BasicGroovyGenerator extends BasicJavaGenerator {
   // template used for models
   modelTemplateFiles += "model.mustache" -> ".groovy"
 
-  // template used for models
-  apiTemplateFiles += "api.mustache" -> ".groovy"
-
-
   // package for models
   override def modelPackage = Some("com.wordnik.client.model")
 
-  // package for api classes
-  override def apiPackage = Some("com.wordnik.client.api")
-
   // file suffix
   override def fileSuffix = ".groovy"
-
-
-  override def supportingFiles =
-    List(
-      ("ApiUtils.mustache", destinationDir + java.io.File.separator + invokerPackage.get.replace(".", java.io.File.separator) + java.io.File.separator, "ApiUtils.groovy"),
-      ("build.gradle.mustache", "generated-code/groovy", "build.gradle"))
-
 }

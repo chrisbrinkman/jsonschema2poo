@@ -15,9 +15,9 @@ class UserApi {
   
   def addHeader(key: String, value: String) = apiInvoker.defaultHeaders += key -> value 
 
-  def createUser (body: User) = {
+  def createUsersWithArrayInput (body: List[User]) = {
     // create path and map variables
-    val path = "/user".replaceAll("\\{format\\}","json")
+    val path = "/user.{format}/createWithArray".replaceAll("\\{format\\}","json")
     val contentType = {
       if(body != null && body.isInstanceOf[File] )
         "multipart/form-data"
@@ -43,9 +43,9 @@ class UserApi {
       case ex: ApiException => throw ex
     }
   }
-  def createUsersWithArrayInput (body: List[User]) = {
+  def createUser (body: User) = {
     // create path and map variables
-    val path = "/user/createWithArray".replaceAll("\\{format\\}","json")
+    val path = "/user.{format}".replaceAll("\\{format\\}","json")
     val contentType = {
       if(body != null && body.isInstanceOf[File] )
         "multipart/form-data"
@@ -73,7 +73,7 @@ class UserApi {
   }
   def createUsersWithListInput (body: List[User]) = {
     // create path and map variables
-    val path = "/user/createWithList".replaceAll("\\{format\\}","json")
+    val path = "/user.{format}/createWithList".replaceAll("\\{format\\}","json")
     val contentType = {
       if(body != null && body.isInstanceOf[File] )
         "multipart/form-data"
@@ -101,7 +101,7 @@ class UserApi {
   }
   def updateUser (username: String, body: User) = {
     // create path and map variables
-    val path = "/user/{username}".replaceAll("\\{format\\}","json").replaceAll("\\{" + "username" + "\\}",apiInvoker.escape(username))
+    val path = "/user.{format}/{username}".replaceAll("\\{format\\}","json").replaceAll("\\{" + "username" + "\\}",apiInvoker.escape(username))
 
     
     val contentType = {
@@ -131,7 +131,7 @@ class UserApi {
   }
   def deleteUser (username: String) = {
     // create path and map variables
-    val path = "/user/{username}".replaceAll("\\{format\\}","json").replaceAll("\\{" + "username" + "\\}",apiInvoker.escape(username))
+    val path = "/user.{format}/{username}".replaceAll("\\{format\\}","json").replaceAll("\\{" + "username" + "\\}",apiInvoker.escape(username))
 
     
     val contentType = {
@@ -158,7 +158,7 @@ class UserApi {
   }
   def getUserByName (username: String) : Option[User]= {
     // create path and map variables
-    val path = "/user/{username}".replaceAll("\\{format\\}","json").replaceAll("\\{" + "username" + "\\}",apiInvoker.escape(username))
+    val path = "/user.{format}/{username}".replaceAll("\\{format\\}","json").replaceAll("\\{" + "username" + "\\}",apiInvoker.escape(username))
 
     
     val contentType = {
@@ -186,7 +186,7 @@ class UserApi {
   }
   def loginUser (username: String, password: String) : Option[String]= {
     // create path and map variables
-    val path = "/user/login".replaceAll("\\{format\\}","json")
+    val path = "/user.{format}/login".replaceAll("\\{format\\}","json")
     val contentType = {
       "application/json"}
 
@@ -214,7 +214,7 @@ class UserApi {
   }
   def logoutUser () = {
     // create path and map variables
-    val path = "/user/logout".replaceAll("\\{format\\}","json")
+    val path = "/user.{format}/logout".replaceAll("\\{format\\}","json")
     val contentType = {
       "application/json"}
 

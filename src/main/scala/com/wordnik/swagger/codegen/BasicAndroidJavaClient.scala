@@ -44,9 +44,6 @@ class BasicAndroidJavaGenerator extends BasicJavaGenerator {
     "AnyRef",
     "Any")
 
-  // package for api invoker, error files
-  override def invokerPackage = Some("com.wordnik.client")
-
   override def templateDir = "android-java"
 
   // where to write generated code
@@ -54,15 +51,4 @@ class BasicAndroidJavaGenerator extends BasicJavaGenerator {
 
   // package for models
   override def modelPackage = Some("com.wordnik.client.model")
-
-  // package for api classes
-  override def apiPackage = Some("com.wordnik.client.api")
-
-  // supporting classes
-  override def supportingFiles = List(
-    ("apiInvoker.mustache", destinationDir + java.io.File.separator + invokerPackage.get.replace(".", java.io.File.separator) + java.io.File.separator, "ApiInvoker.java"),
-    ("jsonUtil.mustache", destinationDir + java.io.File.separator + invokerPackage.get.replace(".", java.io.File.separator) + java.io.File.separator, "JsonUtil.java"),
-    ("ApiException.mustache", destinationDir + java.io.File.separator + invokerPackage.get.replace(".", java.io.File.separator) + java.io.File.separator, "ApiException.java"),
-    ("pom.mustache", "android-java", "pom.xml")
-  )
 }

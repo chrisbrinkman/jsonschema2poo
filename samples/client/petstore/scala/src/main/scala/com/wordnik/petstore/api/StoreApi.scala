@@ -17,7 +17,7 @@ class StoreApi {
 
   def getOrderById (orderId: String) : Option[Order]= {
     // create path and map variables
-    val path = "/store/order/{orderId}".replaceAll("\\{format\\}","json").replaceAll("\\{" + "orderId" + "\\}",apiInvoker.escape(orderId))
+    val path = "/store.{format}/order/{orderId}".replaceAll("\\{format\\}","json").replaceAll("\\{" + "orderId" + "\\}",apiInvoker.escape(orderId))
 
     
     val contentType = {
@@ -45,7 +45,7 @@ class StoreApi {
   }
   def deleteOrder (orderId: String) = {
     // create path and map variables
-    val path = "/store/order/{orderId}".replaceAll("\\{format\\}","json").replaceAll("\\{" + "orderId" + "\\}",apiInvoker.escape(orderId))
+    val path = "/store.{format}/order/{orderId}".replaceAll("\\{format\\}","json").replaceAll("\\{" + "orderId" + "\\}",apiInvoker.escape(orderId))
 
     
     val contentType = {
@@ -72,7 +72,7 @@ class StoreApi {
   }
   def placeOrder (body: Order) = {
     // create path and map variables
-    val path = "/store/order".replaceAll("\\{format\\}","json")
+    val path = "/store.{format}/order".replaceAll("\\{format\\}","json")
     val contentType = {
       if(body != null && body.isInstanceOf[File] )
         "multipart/form-data"

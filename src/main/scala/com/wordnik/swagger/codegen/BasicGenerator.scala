@@ -16,7 +16,6 @@
 
 package com.wordnik.swagger.codegen
 
-import com.wordnik.swagger.codegen.util._
 import com.wordnik.swagger.codegen.language.CodegenConfig
 
 import java.io.{FilenameFilter, File, FileWriter}
@@ -25,14 +24,9 @@ import scala.collection.mutable.{ ListBuffer, HashMap }
 import scala.io.Source
 import org.json4s.jackson.JsonMethods._
 import org.json4s._
-import scala.Tuple3
 import scala.Some
-import com.wordnik.swagger.model.Operation
-import com.wordnik.swagger.model.Model
+import com.wordnik.swagger.model.{SwaggerSerializers, Model}
 import scala.Tuple2
-import com.wordnik.swagger.model.ApiListing
-import com.wordnik.swagger.model.legacy.LegacySerializers
-import scala.collection.mutable
 
 abstract class BasicGenerator extends CodegenConfig with PathUtil {
   def packageName = "com.wordnik.client"
@@ -42,7 +36,7 @@ abstract class BasicGenerator extends CodegenConfig with PathUtil {
 
   override def modelPackage: Option[String] = Some("com.wordnik.client.model")
 
-  var codegen = new Codegen(this)
+  val codegen = new Codegen(this)
 
   def generateClient(args: Array[String]) = {
     generateClientWithoutExit(args)
@@ -56,24 +50,7 @@ abstract class BasicGenerator extends CodegenConfig with PathUtil {
 
     val basePath = args(0)
 
-//    if (args.length == 0) {
-//      throw new RuntimeException("Need url to resource listing as argument. You can also specify VM Argument -DfileMap=/path/to/folder/containing.resources.json/")
-//    }
-//    val host = args(0)
-//    val apiKey = if(args.length > 1) Some(args(1)) else None
-//    val authorization = authenticate(apiKey)
-//    val doc = {
-//      try {
-//        ResourceExtractor.fetchListing(getResourcePath(host), authorization)
-//      } catch {
-//        case e: Exception => throw new Exception("unable to read from " + host, e)
-//      }
-//    }
-
-//    //FIXME remove
-//    val host = ""
-
-    implicit val formats = LegacySerializers.formats
+    implicit val formats = SwaggerSerializers.formats
 
     val jsonDir = new java.io.File(basePath)
     val jsonMap = jsonDir.list(new FilenameFilter {
@@ -87,132 +64,20 @@ abstract class BasicGenerator extends CodegenConfig with PathUtil {
     val jsonBundle = prepareModelMap(jsonMap)
     val jsonFiles = bundleToSource(jsonBundle, modelTemplateFiles.toMap)
     writeFiles(jsonFiles)
-
-//    val testJson = Source.fromFile(basePath + "/category.json").mkString
-//    val testDoc = parse(testJson).extract[Model]
-//    val testMap = mutable.Map(testDoc.id -> testDoc)
-//    val testBundle = prepareModelMap(testMap.toMap)
-//    val testFiles = bundleToSource(testBundle, modelTemplateFiles.toMap)
-//    writeFiles(testFiles)
-
-
-    //FIXME fileMap needs to be a CLI option
-//    val json = Source.fromFile(basePath + "/resources.json").mkString
-//    val doc = parse(json).extract[ResourceListing]
-//
-////    val apis: List[ApiListing] = getApis(host, doc, authorization)
-//    val apis = ApiExtractor.fetchApiListings("1.1", basePath, doc.apis, None)
-
-
-    //    SwaggerSerializers.validationMessages.filter(_.level == ValidationMessage.ERROR).size match {
-//      case i: Int if i > 0 => {
-//        println("********* Failed to read swagger json!")
-//        SwaggerSerializers.validationMessages.foreach(msg => {
-//          println(msg)
-//        })
-//        Option(System.getProperty("skipErrors")) match {
-//          case Some(str) => println("**** ignoring errors and continuing")
-//          case None => sys.exit(0)
-//        }
-//      }
-//      case 0 =>
-//    }
-//    implicit val basePath = getBasePath(host, doc.basePath)
-
-//    new SwaggerSpecValidator(doc, apis).validate()
-
-//    val allModels = new HashMap[String, Model]
-//    val operations = extractApiOperations(apis, allModels)
-////    val operationMap = groupOperationsToFiles(operations)
-//    val modelBundle = prepareModelMap(allModels.toMap)
-//    val modelFiles = bundleToSource(modelBundle, modelTemplateFiles.toMap)
-//
-//    modelFiles.map(m => {
-//      val filename = m._1
-//
-//      val file = new java.io.File(filename)
-//      file.getParentFile().mkdirs
-//
-//      val fw = new FileWriter(filename, false)
-//      fw.write(m._2 + "\n")
-//      fw.close()
-//      println("wrote model " + filename)
-//    })
-
-//    val apiBundle = prepareApiBundle(operationMap.toMap)
-//    val apiFiles = bundleToSource(apiBundle, apiTemplateFiles.toMap)
-//
-//    apiFiles.map(m => {
-//      val filename = m._1
-//
-//      val file = new java.io.File(filename)
-//      file.getParentFile().mkdirs
-//
-//      val fw = new FileWriter(filename, false)
-//      fw.write(m._2 + "\n")
-//      fw.close()
-//      println("wrote api " + filename)
-//    })
-//
-//    codegen.writeSupportingClasses(operationMap, allModels.toMap)
   }
-
-
-//  def getApis(host: String, doc: ResourceListing, authorization: Option[ApiKeyValue]): List[ApiListing] = {
-//    implicit val basePath = getBasePath(host, doc.basePath)
-//    println("base path is " + basePath)
-//
-//    val apiReferences = doc.apis
-//    if (apiReferences == null)
-//      throw new Exception("No APIs specified by resource")
-//    ApiExtractor.fetchApiListings(doc.swaggerVersion, basePath, apiReferences, authorization)
-//  }
-
-//  def authenticate(apiKey: Option[String]): Option[ApiKeyValue] = {
-//    Option(System.getProperty("header")) match {
-//      case Some(e) => {
-//        // this is ugly and will be replaced with proper arg parsing like in ScalaAsyncClientGenerator soon
-//        val authInfo = e.split(":")
-//        Some(ApiKeyValue(authInfo(0), "header", authInfo(1)))
-//      }
-//      case _ => {
-//        apiKey.map{ key =>
-//          Some(ApiKeyValue("api_key", "query", key))
-//        }.getOrElse(None)
-//      }
-//    }
-//  }
 
   def writeFiles(sourceList: List[(String, String)]) {
     sourceList.map(m => {
       val filename = m._1
 
       val file = new java.io.File(filename)
-      file.getParentFile().mkdirs
+      file.getParentFile.mkdirs
 
       val fw = new FileWriter(filename, false)
       fw.write(m._2 + "\n")
       fw.close()
       println("wrote model " + filename)
     })
-  }
-
-  def extractApiOperations(apiListings: List[ApiListing], allModels: HashMap[String, Model] )(implicit basePath:String) = {
-    val output = new ListBuffer[(String, String, Operation)]
-    apiListings.foreach(apiDescription => {
-      val basePath = apiDescription.basePath
-      val resourcePath = apiDescription.resourcePath
-      if(apiDescription.apis != null) {
-        apiDescription.apis.foreach(api => {
-          for ((apiPath, operation) <- ApiExtractor.extractApiOperations(basePath, api)) {
-            output += Tuple3(basePath, apiPath, operation)
-          }
-        })
-      }
-      output.map(op => processApiOperation(op._2, op._3))
-      allModels ++= CoreUtils.extractApiModels(apiDescription)
-    })
-    output.toList
   }
 
   /**
@@ -225,10 +90,8 @@ abstract class BasicGenerator extends CodegenConfig with PathUtil {
         m += "name" -> toModelName(name)
         m += "className" -> name
         m += "filename" -> toModelFilename(name)
-        m += "apis" -> None
         m += "models" -> List((name, schema))
         m += "package" -> modelPackage
-        m += "invokerPackage" -> invokerPackage
         m += "outputDirectory" -> (destinationDir + File.separator + modelPackage.getOrElse("").replace(".", File.separator))
         m += "newline" -> "\n"
 
@@ -237,30 +100,6 @@ abstract class BasicGenerator extends CodegenConfig with PathUtil {
       else None
     }).flatten.toList
   }
-
-//  def prepareApiBundle(apiMap: Map[(String, String), List[(String, Operation)]] ): List[Map[String, AnyRef]] = {
-//    (for ((identifier, operationList) <- apiMap) yield {
-//      val basePath = identifier._1
-//      val name = identifier._2
-//      val className = toApiName(name)
-//
-//      val m = new HashMap[String, AnyRef]
-//
-//      m += "baseName" -> name
-//      m += "filename" -> toApiFilename(name)
-//      m += "name" -> toApiName(name)
-//      m += "className" -> className
-//      m += "basePath" -> basePath
-//      m += "package" -> apiPackage
-//      m += "invokerPackage" -> invokerPackage
-//      m += "apis" -> Map(className -> operationList.toList)
-//      m += "models" -> None
-//      m += "outputDirectory" -> (destinationDir + File.separator + apiPackage.getOrElse("").replace(".", File.separator))
-//      m += "newline" -> "\n"
-//
-//      Some(m.toMap)
-//    }).flatten.toList
-//  }
 
   def bundleToSource(bundle:List[Map[String, AnyRef]], templates: Map[String, String]): List[(String, String)] = {
     val output = new ListBuffer[(String, String)]
@@ -271,30 +110,4 @@ abstract class BasicGenerator extends CodegenConfig with PathUtil {
     })
     output.toList
   }
-
-//  def generateAndWrite(bundle: Map[String, AnyRef], templateFile: String) = {
-//    val output = codegen.generateSource(bundle, templateFile)
-//    val outputDir = new File(bundle("outputDirectory").asInstanceOf[String])
-//    outputDir.mkdirs
-//
-//    val filename = outputDir + File.separator + bundle("filename")
-//    val fw = new FileWriter(filename, false)
-//    fw.write(output + "\n")
-//    fw.close()
-//    println("wrote " + filename)
-//  }
-
-//  def groupOperationsToFiles(operations: List[(String, String, Operation)]): Map[(String, String), List[(String, Operation)]] = {
-//    val opMap = new HashMap[(String, String), ListBuffer[(String, Operation)]]
-//    for ((basePath, apiPath, operation) <- operations) {
-//      val className = resourceNameFromFullPath(apiPath)
-//      val listToAddTo = opMap.getOrElse((basePath, className), {
-//        val l = new ListBuffer[(String, Operation)]
-//        opMap += (basePath, className) -> l
-//        l
-//      })
-//      listToAddTo += Tuple2(apiPath, operation)
-//    }
-//    opMap.map(m => (m._1, m._2.toList)).toMap
-//  }
 }

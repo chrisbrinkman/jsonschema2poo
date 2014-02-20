@@ -19,21 +19,9 @@ import com.wordnik.swagger.codegen.BasicScalaGenerator
 object ScalaPetstoreCodegen extends BasicScalaGenerator {
   def main(args: Array[String]) = generateClient(args)
 
-  // package for api invoker, error files
-  override def invokerPackage = Some("com.wordnik.client")
-    
   // where to write generated code
   override def destinationDir = "samples/client/petstore/scala/src/main/scala"
 
   // package for models
   override def modelPackage = Some("com.wordnik.petstore.model")
-
-//  // package for api classes
-//  override def apiPackage = Some("com.wordnik.petstore.api")
-//
-//  // supporting classes
-//  override def supportingFiles = List(
-//    ("apiInvoker.mustache", destinationDir + java.io.File.separator + invokerPackage.get.replace(".", java.io.File.separator) + java.io.File.separator, "ApiInvoker.scala"),
-//    ("pom.mustache", "samples/client/petstore/scala", "pom.xml")
-//  )
 }
