@@ -43,9 +43,8 @@ You can then compile the objects in your code base.
 
 Other languages have samples, too:
 ```
-./bin/flash-petstore.sh
+./bin/groovy-petstore.sh
 ./bin/java-petstore.sh
-./bin/objc-petstore.sh
 ./bin/php-petstore.sh
 ./bin/python-petstore.sh
 ./bin/python3-petstore.sh
