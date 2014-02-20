@@ -1,9 +1,9 @@
 import xml.Group
 import AssemblyKeys._
 
-organization := "com.wordnik"
+organization := "net.kormos"
 
-name := "swagger-codegen"
+name := "jsonschema2poo"
 
 version := "2.0.13"
 
@@ -81,7 +81,7 @@ pomIncludeRepository := { x => false }
 
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
-homepage := Some(new URL("https://github.com/wordnik/swagger-codegen"))
+homepage := Some(new URL("https://github.com/skormos/jsonschema2poo"))
 
 parallelExecution in Test := false
 
@@ -91,15 +91,20 @@ licenses := Seq(("Apache License 2.0", new URL("http://www.apache.org/licenses/L
 
 pomExtra <<= (pomExtra, name, description) {(pom, name, desc) => pom ++ Group(
   <scm>
-    <connection>scm:git:git@github.com:wordnik/swagger-codegen.git</connection>
-    <developerConnection>scm:git:git@github.com:wordnik/swagger-codegen.git</developerConnection>
-    <url>https://github.com/wordnik/swagger-codegen</url>
+    <connection>scm:git:git@github.com:skormos/jsonschema2poo.git</connection>
+    <developerConnection>scm:git:git@github.com:skormos/jsonschema2poo.git</developerConnection>
+    <url>https://github.com/skormos/jsonschema2poo</url>
   </scm>
   <issueManagement>
     <system>github</system>
-    <url>https://github.com/wordnik/swagger-codegen/issues</url>
+    <url>https://github.com/skormos/jsonschema2poo/issues</url>
   </issueManagement>
   <developers>
+    <developer>
+      <id>skormos</id>
+      <name>Spencer Kormos</name>
+      <email>spencer@kormos.net</email>
+    </developer>
     <developer>
       <id>rpidikiti</id>
       <name>Ramesh Pidikiti</name>
@@ -130,4 +135,4 @@ pomExtra <<= (pomExtra, name, description) {(pom, name, desc) => pom ++ Group(
 
 assemblySettings
 
-jarName in assembly := "swagger-codegen.jar"
+jarName in assembly := "jsonschema2poo.jar"
