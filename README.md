@@ -68,20 +68,8 @@ object MyCodegen extends BasicScalaGenerator {
   // where to write generated code
   override def destinationDir = "client/scala/src/main/scala"
 
-  // api invoker package
-  override def invokerPackage = "com.myapi.client"
-
   // package for models
   override def modelPackage = Some("com.myapi.client.model")
-
-  // package for api classes
-  override def apiPackage = Some("com.myapi.client.api")
-
-  // supporting classes
-  override def supportingFiles = List(
-    ("apiInvoker.mustache", destinationDir + java.io.File.separator + packageName.replaceAll("\\.", java.io.File.separator), "ApiInvoker.scala"),
-    ("pom.mustache", destinationDir, "pom.xml")
-  )
 }
 ```
 
